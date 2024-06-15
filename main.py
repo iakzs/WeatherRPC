@@ -1,3 +1,4 @@
+# made by github.com/iakzs
 import time
 import requests
 from pypresence import Presence
