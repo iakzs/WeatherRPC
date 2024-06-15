@@ -46,7 +46,7 @@ def update_discord_rpc():
             print("data fetched successfully and status updated @", today, current_time, "reupdate in 25m")
         else:
             RPC.update(
-                state='please notify moon',
+                state='please notify me',
                 details='could not fetch data',
                 large_image='error', 
                 large_text='Error'
