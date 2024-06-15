@@ -11,6 +11,6 @@ A Discord Rich Presence to show current weather in a city. Requires py and the d
 ![image](https://github.com/MakerOfMoon/WeatherRPC/assets/99389504/9336db55-97b9-4001-b25e-4fec5a4eab2b)
 
 8. Replace the client id and variables while leaving them in the ''
-9. Add your location by replacing the CITY/COUNTRY. It should look something like this: `'Rome/Italy'`. This data is private.
+9. Add your location by replacing the CITY/COUNTRY. It should look something like this: `'Chicago/United States'`. This data is private.
 10. Save the script and run it
 11. Done!
