@@ -1,16 +1,22 @@
-# made by github.com/iakzs 
 import time
 import requests
 from pypresence import Presence
+from datetime import datetime
+from datetime import date
 
-# RPC
-client_id = '' # add the discord client id
+# Time and date variable creation and formatting
+now = datetime.now()
+current_time = now.strftime("%H:%M:%S")
+today = date.today()
+
+# Discord Client ID
+client_id = 'YOUR CLIENT ID'
 RPC = Presence(client_id)
 RPC.connect()
 
-# Weatherapi.com details
-api_key = '' # add your api key
-location = ''  # add yourcity/country
+# WeatherAPI.com details
+api_key = 'WEATHER API KEY HERE'
+location = 'CITY/COUNTRY'  # add yourcity/country
 
 # 
 def get_weather_data():
@@ -35,20 +41,22 @@ def update_discord_rpc():
         
         if weather_data is not None:
             RPC.update(
-                state=f"Temp: {weather_data['temp_c']}°C, Min: {weather_data['mintemp_c']}°C, Max: {weather_data['maxtemp_c']}°C",
-                details=f"Avg Temp: {weather_data['avgtemp_c']}°C, Is it raining: {'Yes' if weather_data['will_it_rain'] else 'No'}",
+                state=f"temp: {weather_data['temp_c']}°C, range: {weather_data['mintemp_c']}-{weather_data['maxtemp_c']}°C",
+                details=f"avg: {weather_data['avgtemp_c']}°C | it {'do be raining' if weather_data['will_it_rain'] else 'aint raining'}",
                 large_image='clouds',
                 large_text='Weather'
             )
+            print("data fetched successfully and status updated @", today, current_time, "reupdate in 25m")
         else:
             RPC.update(
-                state='Could not fetch weather data',
-                details='hmmm... something went wrong',
-                large_image='clouds', 
-                large_text='Weather'
+                state='please notify moon',
+                details='could not fetch data',
+                large_image='error', 
+                large_text='Error'
             )
+            print("could not fetch weather data. please check your internet connection and weather api key @", today, current_time, "retrying in 25m")
         
-        time.sleep(30000) # this depends of what plan you have for the api.
+        time.sleep(1500)
 
 if __name__ == '__main__':
     update_discord_rpc()
