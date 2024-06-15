@@ -4,21 +4,18 @@ from pypresence import Presence
 from datetime import datetime
 from datetime import date
 
-# Time and date variable creation and formatting
+# DATA TO INPUT
+api_key = 'WEATHER API KEY HERE'
+client_id = 'YOUR CLIENT ID'
+location = 'CITY/COUNTRY'
+
 now = datetime.now()
 current_time = now.strftime("%H:%M:%S")
 today = date.today()
 
-# Discord Client ID
-client_id = 'YOUR CLIENT ID'
 RPC = Presence(client_id)
 RPC.connect()
 
-# WeatherAPI.com details
-api_key = 'WEATHER API KEY HERE'
-location = 'CITY/COUNTRY'  # add yourcity/country
-
-# 
 def get_weather_data():
     url = f'http://api.weatherapi.com/v1/forecast.json?key={api_key}&q={location}&aqi=no'
     response = requests.get(url)
