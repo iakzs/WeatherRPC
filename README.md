@@ -1,7 +1,7 @@
 # WeatherRPC
 A Discord Rich Presence to show current weather in a city. Requires py and the desktop discord client.
 ### Setting up 🔧
-1. Clone GitHub repo
+1. Download the [source code](https://github.com/iakzs/WeatherRPC/archive/refs/tags/v1.zip)
 2. Open a terminal shell in the folder and run `pip install -r requirements.txt`
 3. Go to https://www.weatherapi.com/signup.aspx and make an account. After logging in at the start of the page you will find an API Key. Copy it and save it somewhere.
 4. Go to https://discord.com/developers/applications/ and make a new application. Name it something nice (e.g. Weather) as it will show up in your status.
