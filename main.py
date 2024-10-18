@@ -84,23 +84,24 @@ def get_weather_data():
             print("Error fetching weather data from Open-Meteo")
             return None
             
-def get_weather_icon(weather_data):
+def get_weather_icon(weather_data, avg_temps):
     if weather_data['will_it_rain']:
-        return 'rain_icon'
-    elif weather_data['temp_c'] > 25:
-        return 'sun_icon'
+        return 'rain'
+    elif avg_temps > 20:
+        return 'sun'
     else:
-        return 'clouds_icon'
-        
+        return 'clouds'
+
 def update_discord_rpc():
     while True:
         weather_data = get_weather_data()
-        weather_icon = get_weather_icon(weather_data)
         
         if weather_data is not None:
+            avg_temps = (weather_data['mintemp_c'] + weather_data['maxtemp_c']) / 2
+            weather_icon = get_weather_icon(weather_data, avg_temps)
             RPC.update(
                 state=f"temp: {weather_data['temp_c']}°C, range: {weather_data['mintemp_c']}-{weather_data['maxtemp_c']}°C",
-                details=f"avg: {(weather_data['mintemp_c'] + weather_data['maxtemp_c']) / 2:.1f}°C | it {'do be raining' if weather_data['will_it_rain'] else 'aint raining'}",
+                details=f"avg: {(weather_data['mintemp_c'] + weather_data['maxtemp_c']) / 2:.1f}°C | it {'is raining :(' if weather_data['will_it_rain'] else 'is not raining :D'}",
                 large_image=weather_icon,
                 large_text='Weather | github.com/iakzs/WeatherRPC'
             )
@@ -110,7 +111,7 @@ def update_discord_rpc():
                 state='please notify me',
                 details='could not fetch data',
                 large_image='error', 
-                large_text='Error'
+                large_text='Error :( | github.com/iakzs/WeatherRPC'
             )
             print("Could not fetch weather data. Please check your connection @", today, current_time, "Retrying in 25m")
         
