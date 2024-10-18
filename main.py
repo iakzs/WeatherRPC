@@ -83,17 +83,26 @@ def get_weather_data():
         else:
             print("Error fetching weather data from Open-Meteo")
             return None
-
+            
+def get_weather_icon(weather_data):
+    if weather_data['will_it_rain']:
+        return 'rain_icon'
+    elif weather_data['temp_c'] > 25:
+        return 'sun_icon'
+    else:
+        return 'clouds_icon'
+        
 def update_discord_rpc():
     while True:
         weather_data = get_weather_data()
+        weather_icon = get_weather_icon(weather_data)
         
         if weather_data is not None:
             RPC.update(
                 state=f"temp: {weather_data['temp_c']}°C, range: {weather_data['mintemp_c']}-{weather_data['maxtemp_c']}°C",
                 details=f"avg: {(weather_data['mintemp_c'] + weather_data['maxtemp_c']) / 2:.1f}°C | it {'do be raining' if weather_data['will_it_rain'] else 'aint raining'}",
-                large_image='clouds',
-                large_text='Weather'
+                large_image=weather_icon,
+                large_text='Weather | github.com/iakzs/WeatherRPC'
             )
             print("Data fetched successfully and status updated @", today, current_time, "Reupdate in 25m")
         else:
