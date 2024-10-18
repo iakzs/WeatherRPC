@@ -10,7 +10,7 @@ useWeatherApi = False  # Set this to True to use WeatherAPI.com, otherwise it wi
 api_key = 'WEATHER API KEY HERE'  # Required for WeatherAPI.com
 
 client_id = 'YOUR CLIENT ID' # Required for Discord RPC
-location = 'CITY/COUNTRY' # Required to fetch for both Open-Meteo and WeatherAPI.com
+location = 'City/Country' # Required to fetch for both Open-Meteo and WeatherAPI.com
 
 now = datetime.now()
 current_time = now.strftime("%H:%M:%S")
@@ -22,15 +22,28 @@ RPC.connect()
 def get_latitude_longitude(location):
     """Fetch latitude and longitude for a given city/country using Nominatim (OpenStreetMap)."""
     geocoding_url = f"https://nominatim.openstreetmap.org/search?format=json&q={location}"
-    response = requests.get(geocoding_url)
-    data = response.json()
     
-    if response.status_code == 200 and len(data) > 0:
-        latitude = data[0]['lat']
-        longitude = data[0]['lon']
-        return float(latitude), float(longitude)
+    headers = {
+        'User-Agent': 'WeatherRPC/1.1 (github.com/iakzs/WeatherRPC)' # my bad nominatim
+    }
+    
+    response = requests.get(geocoding_url, headers=headers)
+
+    if response.status_code == 200:
+        try:
+            data = response.json()
+            if len(data) > 0:
+                latitude = data[0]['lat']
+                longitude = data[0]['lon']
+                return float(latitude), float(longitude)
+            else:
+                print("Error: No results found for the location.")
+                return None, None
+        except requests.exceptions.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            return None, None
     else:
-        print("Error: Unable to fetch latitude/longitude for the given location.")
+        print(f"Error: Received non-200 status code: {response.status_code} with response text: {response.text}")
         return None, None
 
 def get_weather_data():
