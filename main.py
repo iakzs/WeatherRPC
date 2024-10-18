@@ -1,14 +1,16 @@
-# made by github.com/iakzs
+# made by github.com/iakzs and all the contributors
 import time
 import requests
 from pypresence import Presence
 from datetime import datetime
 from datetime import date
 
-# DATA TO INPUT
-api_key = 'WEATHER API KEY HERE'
-client_id = 'YOUR CLIENT ID'
-location = 'CITY/COUNTRY'
+useWeatherApi = False  # Set this to True to use WeatherAPI.com, otherwise it will use Open-Meteo
+
+api_key = 'WEATHER API KEY HERE'  # Required for WeatherAPI.com
+
+client_id = 'YOUR CLIENT ID' # Required for Discord RPC
+location = 'CITY/COUNTRY' # Required to fetch for both Open-Meteo and WeatherAPI.com
 
 now = datetime.now()
 current_time = now.strftime("%H:%M:%S")
@@ -17,21 +19,57 @@ today = date.today()
 RPC = Presence(client_id)
 RPC.connect()
 
-def get_weather_data():
-    url = f'http://api.weatherapi.com/v1/forecast.json?key={api_key}&q={location}&aqi=no'
-    response = requests.get(url)
+def get_latitude_longitude(location):
+    """Fetch latitude and longitude for a given city/country using Nominatim (OpenStreetMap)."""
+    geocoding_url = f"https://nominatim.openstreetmap.org/search?format=json&q={location}"
+    response = requests.get(geocoding_url)
     data = response.json()
-    if response.status_code == 200:
-        weather_data = {
-            'temp_c': data['current']['temp_c'],
-            'mintemp_c': data['forecast']['forecastday'][0]['day']['mintemp_c'],
-            'maxtemp_c': data['forecast']['forecastday'][0]['day']['maxtemp_c'],
-            'avgtemp_c': data['forecast']['forecastday'][0]['day']['avgtemp_c'],
-            'will_it_rain': data['forecast']['forecastday'][0]['day']['daily_will_it_rain']
-        }
-        return weather_data
+    
+    if response.status_code == 200 and len(data) > 0:
+        latitude = data[0]['lat']
+        longitude = data[0]['lon']
+        return float(latitude), float(longitude)
     else:
+        print("Error: Unable to fetch latitude/longitude for the given location.")
+        return None, None
+
+def get_weather_data():
+    latitude, longitude = get_latitude_longitude(location)
+
+    if latitude is None or longitude is None:
         return None
+
+    if useWeatherApi:
+        url = f'http://api.weatherapi.com/v1/forecast.json?key={api_key}&q={location}&aqi=no'
+        response = requests.get(url)
+        data = response.json()
+        if response.status_code == 200:
+            weather_data = {
+                'temp_c': data['current']['temp_c'],
+                'mintemp_c': data['forecast']['forecastday'][0]['day']['mintemp_c'],
+                'maxtemp_c': data['forecast']['forecastday'][0]['day']['maxtemp_c'],
+                'avgtemp_c': data['forecast']['forecastday'][0]['day']['avgtemp_c'],
+                'will_it_rain': data['forecast']['forecastday'][0]['day']['daily_will_it_rain']
+            }
+            return weather_data
+        else:
+            print("Error fetching weather data from WeatherAPI.com")
+            return None
+    else:
+        url = f'https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&hourly=temperature_2m,precipitation_probability&daily=temperature_2m_min,temperature_2m_max&timezone=auto'
+        response = requests.get(url)
+        data = response.json()
+        if response.status_code == 200:
+            weather_data = {
+                'temp_c': data['hourly']['temperature_2m'][0],
+                'mintemp_c': data['daily']['temperature_2m_min'][0],
+                'maxtemp_c': data['daily']['temperature_2m_max'][0],
+                'will_it_rain': data['hourly']['precipitation_probability'][0] > 0
+            }
+            return weather_data
+        else:
+            print("Error fetching weather data from Open-Meteo")
+            return None
 
 def update_discord_rpc():
     while True:
@@ -40,11 +78,11 @@ def update_discord_rpc():
         if weather_data is not None:
             RPC.update(
                 state=f"temp: {weather_data['temp_c']}°C, range: {weather_data['mintemp_c']}-{weather_data['maxtemp_c']}°C",
-                details=f"avg: {weather_data['avgtemp_c']}°C | it {'do be raining' if weather_data['will_it_rain'] else 'aint raining'}",
+                details=f"avg: {(weather_data['mintemp_c'] + weather_data['maxtemp_c']) / 2:.1f}°C | it {'do be raining' if weather_data['will_it_rain'] else 'aint raining'}",
                 large_image='clouds',
                 large_text='Weather'
             )
-            print("data fetched successfully and status updated @", today, current_time, "reupdate in 25m")
+            print("Data fetched successfully and status updated @", today, current_time, "Reupdate in 25m")
         else:
             RPC.update(
                 state='please notify me',
@@ -52,7 +90,7 @@ def update_discord_rpc():
                 large_image='error', 
                 large_text='Error'
             )
-            print("could not fetch weather data. please check your internet connection and weather api key @", today, current_time, "retrying in 25m")
+            print("Could not fetch weather data. Please check your connection @", today, current_time, "Retrying in 25m")
         
         time.sleep(1500)
 
